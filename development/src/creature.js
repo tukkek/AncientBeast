@@ -63,7 +63,7 @@ var Creature = Class.create( {
 		this.team		= obj.team; // = playerID (0,1,2,3)
 		this.player		= G.players[obj.team];
 		this.dead		= false;
-		this.killer		= undefined;
+		//this.killer		= undefined; TODO is unserializable and not currently used
 		this.hasWait	= false;
 		this.travelDist = 0;
 		this.effects	= [];
@@ -1085,8 +1085,8 @@ var Creature = Class.create( {
 		// Triggers
 		G.triggersFn.onCreatureDeath(this);
 
-		this.killer = killer.player;
-		var isDeny = (this.killer.flipped == this.player.flipped);
+		killer = killer.player;
+		var isDeny = (killer.flipped == this.player.flipped);
 
 
 		// Drop item
@@ -1097,41 +1097,41 @@ var Creature = Class.create( {
 
 
 		if(!G.firstKill && !isDeny) { // First Kill
-			this.killer.score.push( { type: "firstKill" } );
+			killer.score.push( { type: "firstKill" } );
 			G.firstKill = true;
 		}
 
 		if(this.type == "--") { // If Dark Priest
 			if(isDeny){
 				// TEAM KILL (DENY)
-				this.killer.score.push( { type: "deny", creature: this } );
+				killer.score.push( { type: "deny", creature: this } );
 			}else{
 				// Humiliation
-				this.killer.score.push( { type: "humiliation", player: this.team } );
+				killer.score.push( { type: "humiliation", player: this.team } );
 			}
 		}
 
 		if(!this.undead) { // Only if not undead
 			if(isDeny) {
 				// TEAM KILL (DENY)
-				this.killer.score.push( { type: "deny", creature: this } );
+				killer.score.push( { type: "deny", creature: this } );
 			}else{
 				// KILL
-				this.killer.score.push( { type: "kill", creature: this } );
+				killer.score.push( { type: "kill", creature: this } );
 			}
 		}
 
 		if( this.player.isAnnihilated() ) {
 			// Remove humiliation as annihilation is an upgrade
-			for(var i = 0; i < this.killer.score.length; i++) {
-				var s = this.killer.score[i];
+			for(var i = 0; i < killer.score.length; i++) {
+				var s = killer.score[i];
 				if(s.type == "humiliation") {
-					if(s.player == this.team) this.killer.score.splice(i, 1);
+					if(s.player == this.team) killer.score.splice(i, 1);
 					break;
 				}
 			}
 			// ANNIHILATION
-			this.killer.score.push( { type: "annihilation", player: this.team } );
+			killer.score.push( { type: "annihilation", player: this.team } );
 		}
 
 		if(this.type == "--") this.player.deactivate(); // Here because of score calculation

@@ -40,7 +40,6 @@ function makeid()
     return text;
 }
 
-
 // Listen for server, and use static routing for deploy directory
 server.listen(port, function () {
   console.log('Server listening at port %d', port);

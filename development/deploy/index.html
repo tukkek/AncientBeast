@@ -61,6 +61,16 @@
 	.icon.sonic, .sonic .icon { background-image: url("stats/sonic.svg"); }.icon.sonic:hover, .sonic:hover .icon { background-image: url("stats/sonic.gif"); }
 
 	.icon.mental, .mental .icon { background-image: url("stats/mental.svg"); }.icon.mental:hover, .mental:hover .icon { background-image: url("stats/mental.gif"); }
+	
+	#waiting{
+            background-color:white;
+            position:absolute;
+            top:1em;
+            z-index: 9000;
+            font-size: 2em;
+            right: 5em;
+            display: none;
+	}
 	</style>
 <link rel="stylesheet" href="css/cards.css">
 
@@ -117,6 +127,7 @@ ga('send', 'pageview');
 </script>
 </head>
 <body oncontextmenu="return false;">
+<div id='waiting'>Waiting...</div>
 <div id="matchMaking">
 	<div id="loader"><img src="../interface/AB.gif">Loading</div>
 		<div id="gameSetupContainer">

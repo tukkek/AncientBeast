@@ -18,17 +18,17 @@ var Game = Class.create({
 	*	$combatFrame :	Combat element containing all graphics except the UI
 	*
 	*	// Game elements
-	*	players :			Array :	Containing Player objects ordered by player ID (0 to 3)
-	*	creatures :			Array :	Contain creatures (creatures[creature.id]) start at index 1
+	*	players :		Array :	Containing Player objects ordered by player ID (0 to 3)
+	*	creatures :		Array :	Contain creatures (creatures[creature.id]) start at index 1
 	*
-	*	grid :				Grid :	Grid object
-	*	UI :				UI :	UI object
+	*       Grid :	                Grid    Grid object
+	*	UI :			UI :	UI object
 	*
-	*	queue :				Array :	Current array of Creature ordered by initiative
+	*	queue :			Array :	Current array of Creature ordered by initiative
 	*	delayQueue :		Array :	Array of Creature who has wait during the turn
-	*	nextQueue :			Array :	Array containing ALL creature ordered by initiative
+	*	nextQueue :		Array :	Array containing ALL creature ordered by initiative
 	*
-	*	turn :				Integer :	Number of the current turn
+	*	turn :			Integer     Number of the current turn
 	*
 	*	// Normal attributes
 	*	playerMode :		Integer :	Number of player in the game
@@ -457,13 +457,18 @@ var Game = Class.create({
 		this.nextCreature();
 	},
 
-
 	/*	nextCreature()
 	*
-	*	Activate the next creature in queue
+	*	Activate the next creature in queue. Called many times per round.
 	*
 	*/
 	nextCreature: function() {
+                if(Remote.defer()){
+                    /*G.nextCreature();
+                    console.debug(G.queue);
+                    return;*/
+                    return;
+                }
 		G.UI.closeDash(true); // True argument prevent calling the queryMove function before the next creature
 		G.UI.btnToggleDash.changeState("normal");
 		G.grid.xray( new Hex(-1, -1) ); // Clear Xray
@@ -473,61 +478,61 @@ var Game = Class.create({
 		G.stopTimer();
 		// Delay
 		setTimeout(function() {
-			var interval = setInterval(function() {
-				if(!G.freezedInput) {
-					clearInterval(interval);
+                    var interval = setInterval(function() {
+                        if(!G.freezedInput) {
+                            clearInterval(interval);
 
-					var differentPlayer = false;
+                            var differentPlayer = false;
 
-					if(G.queue.length === 0) { // If no creature in queue
-						if(G.delayQueue.length > 0) {
-							if( G.activeCreature ) differentPlayer = ( G.activeCreature.player != G.delayQueue[0].player );
-							else differentPlayer = true;
-							G.activeCreature = G.delayQueue[0]; //set new creature active
-							G.delayQueue = G.delayQueue.slice(1); //and remove it from the queue
-							console.log("Delayed Creature");
-						}else{
-							G.nextRound(); // Go to next Round
-							return; // End function
-						}
-					}else{
-						if( G.activeCreature ) differentPlayer = ( G.activeCreature.player != G.queue[0].player );
-						else differentPlayer = true;
-						G.activeCreature = G.queue[0]; // Set new creature active
-						G.queue = G.queue.slice(1); // And remove it from the queue
-					}
+                            if(G.queue.length === 0) { // If no creature in queue
+                                    if(G.delayQueue.length > 0) {
+                                            differentPlayer=!G.activeCreature||
+                                                G.activeCreature.player!= G.delayQueue[0].player;
+                                            G.activeCreature = G.delayQueue[0]; //set new creature active
+                                            G.delayQueue = G.delayQueue.slice(1); //and remove it from the queue
+                                            console.log("Delayed Creature");
+                                    }else{
+                                            G.nextRound(); // Go to next Round
+                                            return; // End function
+                                    }
+                            }else{
+                                    if( G.activeCreature ) differentPlayer = ( G.activeCreature.player != G.queue[0].player );
+                                    else differentPlayer = true;
+                                    G.activeCreature = G.queue[0]; // Set new creature active
+                                    G.queue = G.queue.slice(1); // And remove it from the queue
+                            }
 
-					if(G.activeCreature.player.hasLost) {
-						G.nextCreature();
-						return;
-					}
+                            if(G.activeCreature.player.hasLost) {
+                                    G.nextCreature();
+                                    return;
+                            }
 
-					// Heart Beat sound for different player turns
-					if(differentPlayer) {
-						G.soundsys.playSound(G.soundLoaded[4], G.soundsys.heartbeatGainNode);
-					}
+                            // Heart Beat sound for different player turns
+                            if(differentPlayer) {
+                                    G.soundsys.playSound(G.soundLoaded[4], G.soundsys.heartbeatGainNode);
+                            }
 
-					G.log("Active Creature : %CreatureName" + G.activeCreature.id + "%");
-					G.activeCreature.activate();
+                            G.log("Active Creature : %CreatureName" + G.activeCreature.id + "%");
+                            G.activeCreature.activate();
 
-					// Show mini tutorial in the first round for each player
-					if(G.turn == 1) {
-						G.log("The active unit has a flashing hexagon");
-						G.log("It uses a plasma field to protect itself");
-						G.log("Its portrait is displayed in the upper left");
-						G.log("Under the portrait are the unit's abilities");
-						G.log("The ones with flashing icons are usable");
-						G.log("Use the last one to materialize a unit");
-						G.log("Making units drains your plasma points");
-						G.log("Press the hourglass icon to skip the turn");
-						G.log("%CreatureName" + G.activeCreature.id + "%, press here to toggle tutorial!");
-					}
+                            // Show mini tutorial in the first round for each player
+                            if(G.turn == 1) {
+                                    G.log("The active unit has a flashing hexagon");
+                                    G.log("It uses a plasma field to protect itself");
+                                    G.log("Its portrait is displayed in the upper left");
+                                    G.log("Under the portrait are the unit's abilities");
+                                    G.log("The ones with flashing icons are usable");
+                                    G.log("Use the last one to materialize a unit");
+                                    G.log("Making units drains your plasma points");
+                                    G.log("Press the hourglass icon to skip the turn");
+                                    G.log("%CreatureName" + G.activeCreature.id + "%, press here to toggle tutorial!");
+                            }
 
-					// Update UI to match new creature
-					G.UI.updateActivebox();
-					G.reorderQueue(); // Update UI and Queue order
-				}
-			},50);
+                            // Update UI to match new creature
+                            G.UI.updateActivebox();
+                            G.reorderQueue(); // Update UI and Queue order
+                        }
+                    },50);
 		},300);
 	},
 
@@ -1095,7 +1100,10 @@ var Game = Class.create({
 		}
 	},
 
-	action : function(o,opt) {
+        /*
+         * Used to replay a logged action or network message.
+         */
+	action: function(o,opt) {
 
 		var defaultOpt = {
 			callback : function() {},
@@ -1345,7 +1353,6 @@ var Player = Class.create({
 		}
 	},
 });
-
 
 var Gamelog = Class.create( {
 

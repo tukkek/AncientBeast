@@ -178,7 +178,7 @@ G.abilities[7] =[
 			return this.trap.hex.creature.type != "P7";
 		};
 
-    var crea = this.creature;
+                var crea = this.creature;
 		crea.hexagons.each(function() {
 			this.createTrap("firewall", [
 				new Effect(
