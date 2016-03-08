@@ -928,7 +928,7 @@ var HexGrid = Class.create( {
 		for (var y = 0; y < this.hexs.length; y++) {
 			for (var i = 1; i < G.creatures.length; i++) {
 
-				if( G.creatures[i].y == y ) {
+				if( G.creatures[i]&&G.creatures[i].y == y ) {
 					console.log(G.creatures[i].grp);
 					this.creatureGroup.remove( G.creatures[i].grp);
 					this.creatureGroup.addAt( G.creatures[i].grp, index++ );

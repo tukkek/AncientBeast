@@ -53,13 +53,19 @@ var Remote={
         packet.step=this.step;
         packet.creatures=[];
         for(var i=0;i<G.creatures.length;i++){
-            var c=jQuery.extend(true, {}, G.creatures[i]);
+            if(!G.creatures[i])continue;
+            console.debug(G.creatures[i]);//TODO
+            var c=filteroutgoing(jQuery.extend(true, {}, G.creatures[i]));
             for (var prop in c) if (c.hasOwnProperty(prop)&&c[prop] instanceof Function) delete c[prop];
-            packet.creatures.push(filter(c));
+            /*for (var prop in c) if (c.hasOwnProperty(prop)) {//TODO debug
+                console.debug(prop);
+                console.debug(JSON.stringify(c[prop]));
+            }*/
+            packet.creatures.push(c);
             //debugcreature(c);
         }
         packet.turn=G.turn;
-        packet.ids=G.creaIdCounter;
+        //packet.ids=G.creaIdCounter;
         packet.queue=queuetoid(G.queue);
         packet.delayQueue=queuetoid(G.delayQueue);
         packet.nextQueue=queuetoid(G.nextQueue);
@@ -67,8 +73,12 @@ var Remote={
         packet=JSON.stringify(packet);
         console.debug(packet);
         $j.post( REMOTEURL,packet, function( data ) {
-            Remote.wait();
-            Remote.download();
+            if(G.queue[0].team==Remote.player){
+                G.nextCreature();
+            }else{
+                Remote.wait();
+                Remote.download();
+            }
         });
     },
     
@@ -79,6 +89,7 @@ var Remote={
      * currently does nothing
      */
     wait:function(){
+        $j('#waiting').html('Waiting...');
         $j('#waiting').css('display','block');
     },
     
@@ -100,10 +111,11 @@ var Remote={
             Remote.game=packet.game;
             Remote.summoned=[];
             Remote.step=packet.step;
+            console.debug(packet.creatures);//TODO
             packetcreature:for(var i=0;i<packet.creatures.length;i++){
-                var sent=packet.creatures[i];
-                console.debug('loop '+j);//TODO
-                console.debug(G.creatures);
+                var sent=filterincoming(packet.creatures[i]);
+                //console.debug('loop '+j);//TODO
+                //console.debug(G.creatures);
                 for(var j=0;j<G.creatures.length;j++){
                     var c=G.creatures[j];
                     if(!c||sent.id!=c.id){
@@ -114,12 +126,9 @@ var Remote={
                     continue packetcreature;
                 }
                 console.debug('summoned #'+sent.id);//TODO
-                Remote.summoned.push(packet.creatures[i]);
+                Remote.summoned.push(sent);
             }
-            G.creaIdCounter=packet.ids;
-            G.queue=idtoqueue(packet.queue);
-            G.delayQueue=idtoqueue(packet.delayQueue);
-            G.nextQueue=idtoqueue(packet.nextQueue);
+            //G.creaIdCounter=packet.ids;
             Remote.update();
         });
     },
@@ -131,12 +140,11 @@ var Remote={
         //TODO add summoned creatures
         //TODO remove dead creatures
         //TODO move creatures
-        
         G.grid.forEachHexs(function(){this.creature=undefined;});
         for(var i=0;i<G.creatures.length;i++){
             var c=G.creatures[i];
             if(!c)continue;
-            //c.updateHex();
+            c.updateHex();
             for(var j=0;j<Remote.downloaded.creatures.length;j++){
                 var sent=Remote.downloaded.creatures[j];
                 if(!sent||sent.id!=c.id){
@@ -148,9 +156,18 @@ var Remote={
                     //var hex=c.hexagons[0];
                     c.moveTo(hex,{animation:'teleport',ignorePath:true,});
                 }
+                c.healtIndicatorText.setText(c.health);
             }
         }
-        
+        for(var i=0;i<this.summoned.length;i++){
+            var c=this.summoned[i];
+            //c.stats=G.retreiveCreatureStats(c);
+            c.player.summon(c.type,c.pos);
+        }
+        G.queue=idtoqueue(Remote.downloaded.queue);
+        G.delayQueue=idtoqueue(Remote.downloaded.delayQueue);
+        G.nextQueue=idtoqueue(Remote.downloaded.nextQueue);
+        cleandead();
         if(Remote.downloaded.turn>G.turn){
             console.debug('next');
             G.nextRound();
@@ -190,7 +207,9 @@ function debugcreature(c){
     console.debug('pos='+JSON.stringify(c['pos']))
 }
 
-function filter(c){
+function filteroutgoing(c){
+    console.debug(c);
+    c['playerid']=c.player.id;
     delete c['abilities'];
     delete c['grp'];
     delete c['sprite'];
@@ -199,12 +218,32 @@ function filter(c){
     delete c['healtIndicatorSprite'];
     delete c['healtIndicatorText'];
     delete c['baseStats'];
-    delete c['stats']; //TODO
+    delete c['stats'];
     delete c['animation'];
     delete c['display'];
     delete c['hexagons'];
-    delete c['player'];
     delete c['x'];
     delete c['y'];
+    delete c['player'];
+    delete c['effects'];
+    delete c['dropCollection'];
     return c;
+}
+
+function filterincoming(c){
+    c['player']=G.players[c['playerid']];
+    return c;
+}
+
+function cleandead(){
+    for(var i=0;i<G.creatures.length;i++){
+        var c=G.creatures[i];
+        if(c&&c.dead){
+            c.cleanHex();
+            //G.creatures.splice(i,1);
+            c.remove();
+            //cleandead();//prevent co-modification
+            //return;
+        }
+    }
 }

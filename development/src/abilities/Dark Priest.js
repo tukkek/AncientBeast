@@ -255,8 +255,8 @@ G.abilities[0] =[
 		var creature = args.creature;
 		var ability = this;
 
-		var creaStats = G.retreiveCreatureStats(creature);
-		var dpriest = this.creature;
+		//var creaStats = G.retreiveCreatureStats(creature);
+		//var dpriest = this.creature;
 
 		var pos = { x:hex.x, y:hex.y };
 

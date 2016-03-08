@@ -1202,6 +1202,7 @@ var Player = Class.create({
 	summon: function(type, pos) {
 		var data = G.retreiveCreatureStats(type);
 		data = $j.extend(data,pos,{team:this.id}); // Create the full data for creature creation
+                console.debug(data);
 		for (var i = G.creatureJSON.length - 1; i >= 0; i--) {
 			if(
 				G.creatureJSON[i].type == type &&

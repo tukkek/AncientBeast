@@ -67,7 +67,7 @@ var Creature = Class.create( {
 		this.hasWait	= false;
 		this.travelDist = 0;
 		this.effects	= [];
-		this.dropCollection	= [];
+		this.dropCollection	= [];//TODO document
 		this.protectedFromFatigue = (this.type == "--") ? true : false ;
 		this.turnsActive = 0;
 
@@ -756,6 +756,7 @@ var Creature = Class.create( {
 			});
 			return Hexs;
 		}else{
+                        console.debug(this.hexagons[0].adjacentHex(dist));//TODO
 			return this.hexagons[0].adjacentHex(dist);
 		}
 	},
@@ -1136,19 +1137,7 @@ var Creature = Class.create( {
 
 		if(this.type == "--") this.player.deactivate(); // Here because of score calculation
 
-		// Kill animation
-		var tweenSprite = G.Phaser.add.tween(this.sprite).to( {alpha:0}, 500, Phaser.Easing.Linear.None ).start();
-		var tweenHealth = G.Phaser.add.tween(this.healtIndicatorGrp).to( { alpha: 0 }, 500, Phaser.Easing.Linear.None ).start();
-		tweenSprite.onCompleteCallback(function() { crea.sprite.destroy(); });
-		tweenHealth.onCompleteCallback(function() { crea.healtIndicatorGrp.destroy(); });
-
-		this.cleanHex();
-
-		G.queue.removePos(this);
-		G.nextQueue.removePos(this);
-		G.delayQueue.removePos(this);
-		G.reorderQueue();
-		G.grid.updateDisplay();
+		this.remove();
 
 		if(G.activeCreature === this) { G.nextCreature(); return; } //End turn if current active creature die
 
@@ -1159,6 +1148,26 @@ var Creature = Class.create( {
 		G.UI.updateActivebox();
 		G.UI.updateQueueDisplay(); // Just in case
 	},
+        
+        /*
+         * TODO comment
+         */
+        remove:function(){
+            // Kill animation
+            var tweenSprite = G.Phaser.add.tween(this.sprite).to( {alpha:0}, 500, Phaser.Easing.Linear.None ).start();
+            var tweenHealth = G.Phaser.add.tween(this.healtIndicatorGrp).to( { alpha: 0 }, 500, Phaser.Easing.Linear.None ).start();
+            if(tweenSprite.onCompleteCallback)
+                tweenSprite.onCompleteCallback(function() { crea.sprite.destroy(); });
+            if(tweenHealth.onCompleteCallback)
+                tweenHealth.onCompleteCallback(function() { crea.healtIndicatorGrp.destroy(); });
+                
+            this.cleanHex();
+            G.queue.removePos(this);
+            G.nextQueue.removePos(this);
+            G.delayQueue.removePos(this);
+            G.reorderQueue();
+            G.grid.updateDisplay();
+        },
 
 
 	/*	isAlly(team)
