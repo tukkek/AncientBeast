@@ -1,4 +1,4 @@
-var REMOTEURL='http://192.168.1.34:8081';
+var REMOTEURL='http://abserver-1244.appspot.com';
 
 /*
  * Send and fetch game state to a remote memory storage.
